@@ -1,4 +1,4 @@
 Ymani:
--Install docker to the GCP
+-(1) Install docker to the GCP
 
 Robert:
