@@ -10,7 +10,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - /data/db:/var/lib/postgresql/data
+      - ./data/db:/var/lib/postgresql/data
     networks:
       - backend
     deploy:
@@ -18,6 +18,18 @@ services:
         limits:
           cpus: "1.0"
           memory: 2G
+
+  inference:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+    deploy:
+      replicas: 1
+    volumes:
+      - ./data/models:/models
+    entrypoint: ["/app/llama-server", "-m", "/models/qwen2.5-0.5b-instruct-fp16.gguf", "--port", "8080", "--host", "0.0.0.0", "-n", "512"]
 
 networks:
   backend:
