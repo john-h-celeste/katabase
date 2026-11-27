@@ -21,7 +21,7 @@ install() {
 	fi # side-note: this was weird lol
 
 	log "Installing Docker"
-	. /etc/os-release # returns the os id (debian, ubutunu, etc) and VERSION_CODENAME
+	. /etc/os-release # returns the os id (debian, ubutunu, etc) and VERSION_CODENAME to the shell
 	apt-get update -y
 	apt-get install -y ca-certificates curl gnupg git
 	install -m 0755 -d /etc/apt/keyrings
@@ -33,6 +33,7 @@ install() {
 	systemctl enable --now docker
 }
 
+# keeps the gcp up-to-date with the main github repo
 sync_repo() {
 	if [ -d "${APP_DIR}/.git" ]; then
 		log "Updating repo"
