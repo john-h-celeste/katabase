@@ -46,7 +46,10 @@ sync_repo() {
 
 # main function that runs when the script is ran
 main() {
-	
+	log "Startup begin"
+	install_docker
+	sync_repo
+	log "Startup done"
 }
 
 main
