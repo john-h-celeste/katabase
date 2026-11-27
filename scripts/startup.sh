@@ -44,6 +44,11 @@ sync_repo() {
 	fi
 }
 
+# sets up the lvm
+setup_lvm() {
+	
+}
+
 # main function that runs when the script is ran
 main() {
 	log "Startup begin"
