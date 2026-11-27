@@ -47,7 +47,7 @@ sync_repo() {
 # sets up the 
 # (used google gemini to assist with this part since it was confusing -ymani)
 setup_lvm() {
-apt-get install -y lvm2
+	apt-get install -y lvm2
 	DISK=/dev/disk/by-id/google-data-disk
 
 	# create physical volume and volume group (only if missing)
@@ -74,6 +74,7 @@ apt-get install -y lvm2
 main() {
 	log "Startup begin"
 	install_docker
+	setup_lvm
 	sync_repo
 	log "Startup done"
 }
