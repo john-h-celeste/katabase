@@ -44,9 +44,30 @@ sync_repo() {
 	fi
 }
 
-# sets up the lvm
+# sets up the 
+# (used google gemini to assist with this part since it was confusing -ymani)
 setup_lvm() {
-	
+apt-get install -y lvm2
+	DISK=/dev/disk/by-id/google-data-disk
+
+	# create physical volume and volume group (only if missing)
+	vgs data_vg >/dev/null 2>&1 || { pvcreate "$DISK"; vgcreate data_vg "$DISK"; }
+
+	# leave free space in the VG for the snapshot
+	lvs data_vg/db     >/dev/null 2>&1 || lvcreate -L 10G -n db     data_vg
+	lvs data_vg/models >/dev/null 2>&1 || lvcreate -L 20G -n models data_vg
+
+	# formats only if there's no filesystem yet
+	for lv in db models; do
+		blkid "/dev/data_vg/$lv" >/dev/null 2>&1 || mkfs.ext4 "/dev/data_vg/$lv"
+	done
+
+	# persistent mounts via /etc/fstab
+	mkdir -p /data/db /models
+	grep -q '/dev/data_vg/db' /etc/fstab || echo '/dev/data_vg/db /data/db ext4 defaults,nofail 0 2' >> /etc/fstab
+	grep -q '/dev/data_vg/models' /etc/fstab || echo '/dev/data_vg/models /models ext4 defaults,nofail 0 2' >> /etc/fstab
+	mountpoint -q /data/db || mount /data/db
+	mountpoint -q /models  || mount /models
 }
 
 # main function that runs when the script is ran
