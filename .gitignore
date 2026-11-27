@@ -1,3 +1,6 @@
+# hides *any* potential sensitive file that shouldn't be seen in the public repo (may be updated throughout the
+# project; these were just the ones i googled)
+
 # ignore this file
 Tasks.md
 
@@ -10,7 +13,6 @@ Tasks.md
 crash.log
 override.tf
 override.tf.json
-# keep .terraform.lock.hcl committed
 
 # Secrets and credentials
 .env
@@ -23,11 +25,11 @@ credentials*.json
 service-account*.json
 secrets/
 
-# Large or generated data (staged on the VM, not in Git)
-models/
-*.gguf
-data/db/
-pgdata/
+# # Large or generated data (staged on the VM, not in Git)
+# models/
+# *.gguf
+# data/db/
+# pgdata/
 
 # Python
 __pycache__/
