@@ -70,12 +70,20 @@ setup_lvm() {
 	mountpoint -q /models  || mount /models
 }
 
+write_env() {
+  ENV_FILE="${APP_DIR}/docker/.env"
+  PW="$(gcloud secrets versions access latest --secret=postgres-password)"
+  ( umask 077; printf 'POSTGRES_PASSWORD=%s\n' "$PW" > "$ENV_FILE" )
+
+  log "Wrote .env"
+}
+
 # main function that runs when the script is ran
 main() {
 	log "Startup begin"
 	install_docker
 	setup_lvm
-	sync_repo
+	write_env
 	log "Startup done"
 }
 
