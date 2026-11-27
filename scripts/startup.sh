@@ -78,12 +78,58 @@ write_env() {
   log "Wrote .env"
 }
 
+# LOADING THE MODELS
+# ==================================================================================
+# stages the models into the /models volume so that they are available for use
+stage_models() {
+  local OLLAMA_IMAGE="ollama/ollama:0.40.17"
+  local MODELS=("llama3.2:3b" "nomic-embed-text")
+
+  docker rm -f ollama-stage >/dev/null 2>&1 || true
+  docker run -d --name ollama-stage -e OLLAMA_MODELS=/models -v /models:/models "$OLLAMA_IMAGE"
+
+  sleep 5
+
+  for m in "${MODELS[@]}"; do
+    if docker exec ollama-stage ollama list | grep -q "^${m}"; then
+      log "Model ${m} already staged"
+    else
+      log "Pulling ${m}"
+      docker exec ollama-stage ollama pull "$m"
+    fi
+  done
+
+  docker rm -f ollama-stage
+}
+
+start_stack() {
+  cd "${APP_DIR}/docker"
+  docker compose up -d --build
+
+  log "Waiting for database"
+  until [ "$(docker inspect -f '{{.State.Health.Status}}' rag-db 2>/dev/null)" = "healthy" ]; do
+    sleep 5
+  done
+}
+
+run_ingest() {
+  cd "${APP_DIR}/docker"
+  docker compose --profile tools run --rm --build ingest
+}
+
+# ==================================================================================
+
 # main function that runs when the script is ran
 main() {
 	log "Startup begin"
 	install_docker
 	setup_lvm
 	write_env
+	# log "after env"
+	stage_models
+	# log "hellooooooo"
+	start_stack
+	run_ingest
 	log "Startup done"
 }
 
