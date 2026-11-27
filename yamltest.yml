@@ -21,6 +21,7 @@ services:
 
   inference:
     image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: rag-inference
     ports:
       - "8080:8080"
     networks:
@@ -30,6 +31,20 @@ services:
     volumes:
       - ./data/models:/models
     entrypoint: ["/app/llama-server", "-m", "/models/qwen2.5-0.5b-instruct-fp16.gguf", "--port", "8080", "--host", "0.0.0.0", "-n", "512"]
+
+  app:
+    build: ./app
+    image: rag-app:1.0
+    container_name: rag-app
+    ports:
+      - "8080-8081:8000"                # a range allows --scale chatbot=2 (L31)
+    volumes:
+      - ./docs:/docs:ro                 # knowledge base, read-only
+    networks: backend
+    depends_on: [db]
+    restart: unless-stopped
+    deploy:
+      replicas: 1
 
 networks:
   backend:

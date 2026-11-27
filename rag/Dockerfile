@@ -6,5 +6,5 @@ COPY *.py .
 # Don't run as root inside the container
 RUN useradd -r -u 10001 appuser
 USER appuser
-EXPOSE 8000
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+#EXPOSE 8000
+CMD ["python", "ingest.py"]
