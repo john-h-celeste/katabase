@@ -1,3 +1,9 @@
 git clone https://github.com/john-h-celeste/katabase
 cd terraform
 terraform apply
+
+# running this from the gcp active cloud shell to build the back-end 
+git clone https://github.com/john-h-celeste/katabase.git && cd katabase && ./deploy.sh AI-PROJECT
+
+# wsl commands
+cd ~ && cd "/mnt/c/users/<user>/Documents/GitHub/katabase/" && chmod +x deploy.sh
