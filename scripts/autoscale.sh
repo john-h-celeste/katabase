@@ -101,12 +101,47 @@ init() {
   	log "initialized upstream with core: ${core[*]}"
 }
 
+# open more containers
 scale_up() {
+	local count n
+  	count=$(web_count)
 
+  	[ "$count" -ge "$MAX_WEB" ] && { log "already at max containers ($MAX_WEB)"; return 0; }
+
+  	for n in $(seq $((MIN_WEB + 1)) "$MAX_WEB"); do
+    	if ! running_web | grep -qx "web$n"; then
+      		log "(scaling up): starting web$n"
+      		compose up -d "web$n" >/dev/null 2>&1 || { log "could not start web$n"; return 1; }
+      		local waited=0
+      		until is_healthy "web$n"; do
+        		sleep 3; waited=$((waited + 3))
+        		[ "$waited" -ge "$HEALTHY_TIMEOUT" ] && { log "web$n not healthy after ${HEALTHY_TIMEOUT}s"; return 1; }
+      		done
+      		sync_upstream
+      		return 0
+    	fi
+  done
 }
 
+# close the extra containers
 scale_down() {
+	local count n
+  	count=$(web_count)
+  	[ "$count" -le "$MIN_WEB" ] && { log "already at min ($MIN_WEB)"; return 0; }
+  	n=$(running_web | tail -n 1)
+  	log "(scaling down): removing $n"
 
+  	# take it out of rotation, but give requests time to finish first
+  	local list=() w
+  	while read -r w; do
+    	[ "$w" != "$n" ] && is_healthy "$w" && list+=("$w")
+  	done < <(running_web)
+
+  	write_upstream "${list[@]}"
+  	reload_nginx
+  	sleep 20
+  	compose stop -t 30 "$n" >/dev/null 2>&1
+  	log "stopped $n; running: $(running_web | tr '\n' ' ')"
 }
 
 status() {
