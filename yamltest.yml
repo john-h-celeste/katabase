@@ -30,7 +30,13 @@ services:
       replicas: 1
     volumes:
       - ./data/models:/models
-    entrypoint: ["/app/llama-server", "-m", "/models/qwen2.5-0.5b-instruct-fp16.gguf", "--port", "8080", "--host", "0.0.0.0", "-n", "512"]
+    entrypoint: ["/app/llama-server", "-m", "/models/qwen2.5-0.5b-instruct-fp16.gguf", "--port", "8080", "--host", "0.0.0.0", "-n", "512", "--embedding", "--pooling", "last"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 1"]
+      interval: 2s
+      timeout: 1s
+      retries: 10
+      start_period: 5s
 
   app:
     build: ./app
@@ -40,8 +46,11 @@ services:
       - "8080-8081:8000"                # a range allows --scale chatbot=2 (L31)
     volumes:
       - ./docs:/docs:ro                 # knowledge base, read-only
-    networks: backend
-    depends_on: [db]
+    networks:
+      - backend
+    depends_on:
+      - db
+      - inference
     restart: unless-stopped
     deploy:
       replicas: 1
@@ -49,3 +58,4 @@ services:
 networks:
   backend:
     internal: true
+
