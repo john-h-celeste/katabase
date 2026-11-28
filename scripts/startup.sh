@@ -5,6 +5,7 @@ export DEBIAN_FRONTEND=noninteractive
 exec > >(tee -a /var/log/startup.log) 2>&1
 
 REPO_URL="https://github.com/john-h-celeste/katabase.git"
+REPO_BRANCH="${REPO_BRANCH:-main}" # this was used for debugging and testing
 APP_DIR="/opt/ha-rag"
 
 # used for debugging
@@ -36,11 +37,13 @@ install() {
 # keeps the gcp up-to-date with the main github repo
 sync_repo() {
 	if [ -d "${APP_DIR}/.git" ]; then
-		log "Updating repo"
-		git -C "${APP_DIR}" pull --ff-only
-	else
-		log "Cloning repo"
-		git clone "${REPO_URL}" "${APP_DIR}"
+    	log "Updating repo (branch ${REPO_BRANCH})"
+    	git -C "${APP_DIR}" fetch origin "${REPO_BRANCH}"
+    	git -C "${APP_DIR}" checkout "${REPO_BRANCH}"
+    	git -C "${APP_DIR}" reset --hard "origin/${REPO_BRANCH}"
+  	else
+    	log "Cloning repo (branch ${REPO_BRANCH})"
+    	git clone --branch "${REPO_BRANCH}" --single-branch "${REPO_URL}" "${APP_DIR}"
 	fi
 }
 
