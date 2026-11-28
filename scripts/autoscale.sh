@@ -65,12 +65,32 @@ write_upstream() {
 	render_upstream "$@" > "$UPSTREAM_FILE.tmp" && mv "$UPSTREAM_FILE.tmp" "$UPSTREAM_FILE"
 }
 
+# reload the nginx configuration
 reload_nginx() {
-	
+	if compose exec -T nginx nginx -t >/dev/null 2>&1; then
+    	compose exec -T nginx nginx -s reload >/dev/null 2>&1 && log "nginx reloaded"
+  	else
+    	log "ERROR: nginx config test failed, not reloading"
+    	return 1
+  	fi
 }
 
+# only show healthy and running containers
 sync_upstream() {
+	local list=() n
 
+  	while read -r n; do
+    	[ -n "$n" ] && is_healthy "$n" && list+=("$n")
+  	done < <(running_web)
+
+  	if [ "${#list[@]}" -eq 0 ]; then
+    	log "no healthy web containers (upstream unchanged)"
+    	return 1
+  	fi
+
+  	write_upstream "${list[@]}"
+  	reload_nginx
+  	log "upstream now: ${list[*]}"
 }
 
 init() {
