@@ -21,7 +21,13 @@ gcloud compute ssh rag-vm --zone us-east1-b --tunnel-through-iap --project cop36
 cd /opt/ha-rag && sudo git pull
 cd docker && sudo docker compose up -d --build
 
+# install terraform
+wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install terraform
 
+# pull from current github
+cd ~/katabase && git pull && ./deploy.sh cop3640-fa2026
 
 
 

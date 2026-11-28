@@ -45,15 +45,15 @@ install_docker() {
 
 # keeps the gcp up-to-date with the main github repo
 sync_repo() {
-	if [ -d "${APP_DIR}/.git" ]; then
-    	log "Updating repo (branch ${REPO_BRANCH})"
-    	git -C "${APP_DIR}" fetch origin "${REPO_BRANCH}"
-    	git -C "${APP_DIR}" checkout "${REPO_BRANCH}"
-    	git -C "${APP_DIR}" reset --hard "origin/${REPO_BRANCH}"
+	local url branch
+	url=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/repo-url)
+	branch=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/repo-branch)
+	apt-get -o DPkg::Lock::Timeout=120 install -y git
+	if [ -d /opt/ha-rag/.git ]; then
+    	git -C /opt/ha-rag fetch origin "$branch" && git -C /opt/ha-rag checkout -B "$branch" "origin/$branch" && git -C /opt/ha-rag reset --hard "origin/$branch"
   	else
-    	log "Cloning repo (branch ${REPO_BRANCH})"
-    	git clone --branch "${REPO_BRANCH}" --single-branch "${REPO_URL}" "${APP_DIR}"
-	fi
+    	git clone -b "$branch" "$url" /opt/ha-rag
+  	fi
 }
 
 # sets up the 
@@ -139,6 +139,7 @@ run_ingest() {
 # main function that runs when the script is ran
 main() {
 	log "Startup begin"
+	sync_repo
 	install_docker
 	setup_lvm
 	write_env

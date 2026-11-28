@@ -31,7 +31,7 @@ QUERY_PREFIX = "search_query: " # added to everything the end-user asks (for the
 
 TOP_K = int(os.getenv("TOP_K", "4")) # chunks sent to the llm
 NUM_CTX = int(os.getenv("NUM_CTX", "4096")) # context window requested (sorta like temporary memory)
-TEMPERATURE = float(os.getenv("TEMPERATURE", "0.2")) # randomization for the output
+TEMPERATURE = float(os.getenv("TEMPERATURE", "0.5")) # randomization for the output
 # ^^ 0 for consistent answers and 1 or above for varied answers (can make stuff up though)
 
 HOSTNAME = socket.gethostname()
