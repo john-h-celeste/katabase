@@ -134,6 +134,26 @@ run_ingest() {
 	docker compose --profile tools run --rm --build ingest
 }
 
+install_autoscaler() {
+	mkdir -p /etc/ha-rag/nginx
+  	cat > /etc/systemd/system/ha-autoscale.service << EOF
+		[Unit]
+		Description=HA RAG web autoscaler
+		After=docker.service
+		Requires=docker.service
+
+		[Service]
+		ExecStart=/bin/bash /opt/ha-rag/scripts/autoscale.sh run
+		=always
+
+		[Install]
+		WantedBy=multi-user.target
+EOF
+  	systemctl daemon-reload
+  	systemctl enable ha-autoscale
+  	systemctl restart ha-autoscale
+}
+
 # ==================================================================================
 
 # main function that runs when the script is ran
@@ -147,6 +167,7 @@ main() {
 	stage_models
 	# log "hellooooooo"
 	start_stack
+	install_autoscaler
 	run_ingest
 	log "Startup done"
 }
