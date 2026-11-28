@@ -65,7 +65,11 @@ sync_upstream() {
 }
 
 init() {
-	log "begin"
+	log "begin autoscale script"
+	local core=() i
+  	for i in $(seq 1 "$MIN_WEB"); do core+=("web$i"); done
+  	write_upstream "${core[@]}"
+  	log "initialized upstream with core: ${core[*]}"
 }
 
 scale_up() {
@@ -77,7 +81,10 @@ scale_down() {
 }
 
 status() {
-
+	echo "running web containers: $(running_web | tr '\n' ' ')"
+	echo "avg CPU (% of limit):   $(avg_util)"
+  	echo "--- $UPSTREAM_FILE ---"
+  	cat "$UPSTREAM_FILE" 2>/dev/null || echo "(not written yet)"
 }
 
 run() {
