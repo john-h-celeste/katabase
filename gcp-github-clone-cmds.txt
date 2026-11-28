@@ -6,11 +6,13 @@ terraform apply
 git clone https://github.com/john-h-celeste/katabase.git && cd katabase && ./deploy.sh AI-PROJECT
 git clone https://github.com/john-h-celeste/katabase.git && cd katabase && chmod +x ./deploy.sh && ./deploy.sh AI-PROJECT
 
-rm -rf katabase && git clone --branch ywtest https://github.com/john-h-celeste/katabase.git && cd katabase && chmod +x ./deploy.sh && ./deploy.sh cop3640-fa2026 ywtest
+cd ~ && rm -rf katabase && git clone --branch ywtest https://github.com/john-h-celeste/katabase.git && cd katabase && chmod +x ./deploy.sh && ./deploy.sh cop3640-fa2026 ywtest
+cd ~ && REPO=https://github.com/john-h-celeste/katabase.git; DIR=katabase; BR=main; PROJ=cop3640-fa2026; if [ -d "$DIR/.git" ]; then git -C "$DIR" fetch origin && git -C "$DIR" checkout "$BR" && git -C "$DIR" pull origin "$BR"; else git clone --branch "$BR" "$REPO" "$DIR"; fi && cd "$DIR" && bash deploy.sh "$PROJ" "$BR"
 
+# delete deploy
+./deploy.sh cop3640-fa2026 --destroy --yes
 
-
-
+cd katabase && ./deploy.sh cop3640-fa2026 --destroy --yes
 
 
 

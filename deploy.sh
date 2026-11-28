@@ -61,6 +61,7 @@ log "repo:    ${REPO_URL}"
 log "branch:  ${BRANCH}"
 
 gcloud config set project "$PROJECT_ID" >/dev/null
+gcloud services enable cloudresourcemanager.googleapis.com serviceusage.googleapis.com --project ${PROJECT_ID}
 
 TF_VARS=(
   -var "project_id=${PROJECT_ID}"
