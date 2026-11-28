@@ -20,7 +20,7 @@ log() {
 }
 
 # main function that installs docker upon startup (and auto-updates if possible)
-install() {
+install_docker() {
 	# see if docker was installed or not
 	if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
 		log "Docker already installed, skipping"
