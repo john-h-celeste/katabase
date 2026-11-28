@@ -183,6 +183,6 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     	status) status ;;
     	up)     scale_up ;;
     	down)   scale_down ;;
-    	*) echo "Usage: $0 run|init|status|up|down"; exit 1 ;;
+    	*) echo "usage: $0 run | init | status | up | down"; exit 1 ;;
   	esac
 fi
