@@ -48,16 +48,25 @@ avg_util() {
 
 }
 
+# displays the nginx upstream for the web containers
 render_upstream() {
-
+	echo "upstream ${UPSTREAM_NAME} {"
+	echo "    least_conn;"
+	local n
+	for n in "$@"; do
+		echo "    server ${n}:${UPSTREAM_PORT} max_fails=3 fail_timeout=10s;"
+	done
+	echo "}"
 }
 
+# writes the rendered upstream for a container to the upstream file
 write_upstream() {
-
+	mkdir -p "$UPSTREAM_DIR"
+	render_upstream "$@" > "$UPSTREAM_FILE.tmp" && mv "$UPSTREAM_FILE.tmp" "$UPSTREAM_FILE"
 }
 
 reload_nginx() {
-
+	
 }
 
 sync_upstream() {
