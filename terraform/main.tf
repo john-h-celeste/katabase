@@ -61,6 +61,7 @@ resource "google_compute_instance" "rag" {
 	metadata = {
 		enable-oslogin = "TRUE"
 		repo-url       = var.repo_url
+		repo-branch    = var.repo_branch
 	}
 
 	metadata_startup_script = file("${path.module}/../scripts/startup.sh")
