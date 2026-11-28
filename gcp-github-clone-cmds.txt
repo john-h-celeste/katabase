@@ -4,6 +4,37 @@ terraform apply
 
 # running this from the gcp active cloud shell to build the back-end 
 git clone https://github.com/john-h-celeste/katabase.git && cd katabase && ./deploy.sh AI-PROJECT
+git clone https://github.com/john-h-celeste/katabase.git && cd katabase && chmod +x ./deploy.sh && ./deploy.sh AI-PROJECT
+
+git clone --branch ywtest https://github.com/john-h-celeste/katabase.git && cd katabase && chmod +x ./deploy.sh && ./deploy.sh cop3640-fa2026 ywtest
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# other (another test)
+gcloud config set project AI-PROJECT
+git clone https://github.com/john-h-celeste/katabase.git
+cd katabase
+git checkout ywtest                   	# <branch>
+ls                                      # test princh
+ls scripts/startup.sh                   # must exist
+cd terraform
+cp terraform.tfvars.example terraform.tfvars
+nano terraform.tfvars                   # edit
+
+terraform init
+terraform validate
+terraform plan
 
 # wsl commands
 cd ~ && cd "/mnt/c/users/<user>/Documents/GitHub/katabase/" && chmod +x deploy.sh

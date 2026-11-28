@@ -9,7 +9,9 @@ resource "random_password" "db" {
 
 resource "google_secret_manager_secret" "db" {
 	secret_id = "postgres-password"
-	replication { auto {} }
+	replication { 
+		auto {} 
+	}
 	depends_on = [google_project_service.secretmanager]
 }
 
