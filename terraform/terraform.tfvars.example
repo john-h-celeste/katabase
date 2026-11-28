@@ -1,0 +1,4 @@
+project_id  = "<<id>>"
+repo_url    = "https://github.com/john-h-celeste/katabase.git"
+repo_branch = "<<branch>>"
+team_emails = ["<<ymani email>>", "<<robert email>>"]
