@@ -14,9 +14,12 @@ cd ~ && REPO=https://github.com/john-h-celeste/katabase.git; DIR=katabase; BR=ma
 
 cd katabase && ./deploy.sh cop3640-fa2026 --destroy --yes
 
+# connect to main vm from active shell
+gcloud compute ssh rag-vm --zone us-east1-b --tunnel-through-iap --project cop3640-fa2026
 
-
-
+# refresh old vm
+cd /opt/ha-rag && sudo git pull
+cd docker && sudo docker compose up -d --build
 
 
 

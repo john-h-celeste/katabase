@@ -1,21 +1,28 @@
 <!-- WIP Index File -->
-
+ 
 <!DOCTYPE html>
-<body>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
 	<title>AI Infrastructure Project</title>
+</head>
+<body>
 	<header align="center">Ask the AI a question!</header>
-	</br>
-	<div align="center"id="ask">
+	<br>
+	<div align="center" id="ask">
 		<input align="left" type="text" placeholder="Enter your question here...">
 		<button align="right">Ask</button>
 	</div>
 
 	<p id="response"></p>
+	<h3>Sources used</h3>
+	<ul id="sources"></ul>
 
 	<script>
 		const askButton = document.querySelector("button");
 		const inputField = document.querySelector("input");
 		const responseDiv = document.getElementById("response");
+		const sourcesList = document.getElementById("sources");
 
 		inputField.addEventListener("keypress", (event) => {
 			if (event.key === "Enter") {
@@ -23,11 +30,40 @@
 			}
 		});
 
+		// Handle one Server-Sent Event: "event: <name>" + "data: <json>"
+		function handleEvent(raw, state) {
+			let event = "message";
+			let data = "";
+			for (const line of raw.split("\n")) {
+				if (line.startsWith("event:")) event = line.slice(6).trim();
+				else if (line.startsWith("data:")) data += line.slice(5).trim();
+			}
+			if (!data) return;
+			const obj = JSON.parse(data);
+
+			if (event === "sources") {
+				for (const s of obj) {
+					const li = document.createElement("li");
+					li.textContent = `${s.title} (${s.source})`;
+					sourcesList.appendChild(li);
+				}
+			} else if (event === "token") {
+				if (!state.started) {
+					responseDiv.textContent = "";
+					state.started = true;
+				}
+				responseDiv.textContent += obj.t;
+			} else if (event === "error") {
+				responseDiv.textContent += `\n${obj.message}`;
+			}
+		}
+
 		askButton.addEventListener("click", async () => {
 			const question = inputField.value;
 			if (!question) return;
 
 			responseDiv.textContent = "Thinking...";
+			sourcesList.innerHTML = "";
 
 			try {
 				const response = await fetch("/api/ask", {
@@ -40,11 +76,27 @@
 					throw new Error(`HTTP error! \nstatus: ${response.status}\nmessage: ${await response.text()}`);
 				}
 
-				const data = await response.json();
-				responseDiv.textContent = data.answer ?? "No answer received.";
+				const reader = response.body.getReader();
+				const decoder = new TextDecoder();
+				const state = { started: false };
+
+				let buffer = "";
+
+				while (true) {
+					const { value, done } = await reader.read();
+					if (done) break;
+					buffer += decoder.decode(value, { stream: true });
+
+					let end;
+					while ((end = buffer.indexOf("\n\n")) >= 0) {
+						handleEvent(buffer.slice(0, end), state);
+						buffer = buffer.slice(end + 2);
+					}
+				}
 			} catch (error) {
 				responseDiv.textContent = `Error: ${error.message}`;
 			}
 		});
 	</script>
 </body>
+</html>
