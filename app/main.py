@@ -87,6 +87,7 @@ def db_connect():
 def search_chunks(query_vector: list[float], k: int) -> list[dict]:
     vec = "[" + ",".join(f"{x:.8f}" for x in query_vector) + "]"
     conn = db_connect()
+    
     try:
         with conn.cursor() as cur:
             cur.execute(
@@ -99,6 +100,7 @@ def search_chunks(query_vector: list[float], k: int) -> list[dict]:
                 """,
                 (vec, vec, k),
             )
+            
             return [
                 {"source": s, "title": t, "content": c, "score": round(float(sc), 4)}
                 for s, t, c, sc in cur.fetchall()
@@ -113,6 +115,7 @@ async def embed_question(client: httpx.AsyncClient, question: str) -> list[float
         json={"model": EMBED_MODEL, "input": QUERY_PREFIX + question},
         timeout=60.0,
     )
+    
     resp.raise_for_status()
     return resp.json()["embeddings"][0]
 
