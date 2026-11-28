@@ -6,7 +6,7 @@ terraform apply
 git clone https://github.com/john-h-celeste/katabase.git && cd katabase && ./deploy.sh AI-PROJECT
 git clone https://github.com/john-h-celeste/katabase.git && cd katabase && chmod +x ./deploy.sh && ./deploy.sh AI-PROJECT
 
-git clone --branch ywtest https://github.com/john-h-celeste/katabase.git && cd katabase && chmod +x ./deploy.sh && ./deploy.sh cop3640-fa2026 ywtest
+rm -rf katabase && git clone --branch ywtest https://github.com/john-h-celeste/katabase.git && cd katabase && chmod +x ./deploy.sh && ./deploy.sh cop3640-fa2026 ywtest
 
 
 

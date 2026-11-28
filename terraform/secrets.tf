@@ -20,10 +20,6 @@ resource "google_secret_manager_secret_version" "db" {
 	secret_data = random_password.db.result
 }
 
-resource "google_service_account" "vm" {
-	account_id = "rag-vm"
-}
-
 # account can read this one secret and nothing else
 resource "google_secret_manager_secret_iam_member" "vm_reads_db" {
 	secret_id = google_secret_manager_secret.db.id
