@@ -22,4 +22,66 @@ DOWN_CHECKS="${DOWN_CHECKS:-8}" # consecutive low readings before scaling down
 INTERVAL="${INTERVAL:-15}" # seconds between readings
 HEALTHY_TIMEOUT="${HEALTHY_TIMEOUT:-90}"
 
+log() { 
+	echo "[autoscale] $(date -u +%FT%TZ) $*"
+}
+
+compose() { 
+	docker compose -f "$COMPOSE_FILE" --profile scale "$@"
+}
+
+# gets the names of the web containers that are running (by name)
+running_web() {
+  docker ps --format '{{.Names}}' | grep -E '^web[0-9]+$' | sort -V
+}
+
+# gets the number of containers running
+web_count() { 
+	running_web | wc -l
+}
+
+is_healthy() {
+  [ "$(docker inspect -f '{{.State.Health.Status}}' "$1" 2>/dev/null)" = "healthy" ]
+}
+
+avg_util() {
+
+}
+
+render_upstream() {
+
+}
+
+write_upstream() {
+
+}
+
+reload_nginx() {
+
+}
+
+sync_upstream() {
+
+}
+
+init() {
+	log "begin"
+}
+
+scale_up() {
+
+}
+
+scale_down() {
+
+}
+
+status() {
+
+}
+
+run() {
+
+}
+
 
