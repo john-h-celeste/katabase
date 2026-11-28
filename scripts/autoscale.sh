@@ -151,8 +151,38 @@ status() {
   	cat "$UPSTREAM_FILE" 2>/dev/null || echo "(not written yet)"
 }
 
+# run the actual script
 run() {
+	log "starting: min=$MIN_WEB max=$MAX_WEB up>${UP_PCT}% x${UP_CHECKS} down<${DOWN_PCT}% x${DOWN_CHECKS} every ${INTERVAL}s"
+  	sync_upstream || true # some containers could've (maybe) survived a reboot
+  	local hi=0 lo=0 util
 
+  	while true; do
+    	util=$(avg_util)
+    	log "avg CPU ${util}% of limit, web=$(web_count)"
+
+    	if [ "$util" -ge "$UP_PCT" ]; then
+      		hi=$((hi + 1)); lo=0
+    	elif [ "$util" -le "$DOWN_PCT" ]; then
+      		lo=$((lo + 1)); hi=0
+    	else
+      		hi=0; lo=0
+    	
+		
+    	if [ "$hi" -ge "$UP_CHECKS" ]; then scale_up; hi=0; fi
+    	if [ "$lo" -ge "$DOWN_CHECKS" ]; then scale_down; lo=0; fi
+
+    	sleep "$INTERVAL"
+  	done
 }
 
-
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+	case "${1:-}" in
+    	run)    run ;;
+    	init)   init ;;
+    	status) status ;;
+    	up)     scale_up ;;
+    	down)   scale_down ;;
+    	*) echo "Usage: $0 run|init|status|up|down"; exit 1 ;;
+  	esac
+fi
