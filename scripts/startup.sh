@@ -5,7 +5,7 @@ export DEBIAN_FRONTEND=noninteractive
 exec > >(tee -a /var/log/startup.log) 2>&1
 
 REPO_URL="https://github.com/john-h-celeste/katabase.git"
-REPO_BRANCH="${REPO_BRANCH:-main}" # this was used for debugging and testing
+REPO_BRANCH="${REPO_BRANCH:-ywtest}" # this was used for debugging and testing
 APP_DIR="/opt/ha-rag"
 
 # used for debugging
