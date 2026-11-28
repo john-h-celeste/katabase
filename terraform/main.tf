@@ -91,7 +91,7 @@ resource "google_compute_instance" "rag" {
     repo-branch    = var.repo_branch
   }
 
-  metadata_startup_script = file("${path.module}/../scripts/bootstrap.sh")
+  metadata_startup_script = file("${path.module}/../scripts/startup.sh")
 
   depends_on = [
     google_project_service.apis,
