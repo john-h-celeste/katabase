@@ -50,6 +50,7 @@ services:
       - "80:80" # publish port
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/ha-rag/nginx:/etc/nginx/dynamic:ro
     networks:
       frontend: {}
       backend:
@@ -62,6 +63,9 @@ services:
   web1: { <<: *web, container_name: web1 }
   web2: { <<: *web, container_name: web2 }
   web3: { <<: *web, container_name: web3 }
+
+  # for the scalibility portion (these aren't restarted by a reboot)
+  web4: { <<: *web, container_name: web4, profiles: ["scale"], restart: "no" }
 
   inference1: { <<: *inference, container_name: inference1 }
   inference2: { <<: *inference, container_name: inference2 }
