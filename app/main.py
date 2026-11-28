@@ -138,7 +138,7 @@ def build_messages(question: str, chunks: list[dict]) -> list[dict]:
 # WEB ROUTING CONFIGURATION
 
 # load the default home page
-app.get("/")
+@app.get("/")
 async def index():
     return FileResponse(STATIC_DIR / "index.html")
 
