@@ -2,7 +2,10 @@
 
 set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
-exec > >(tee -a /var/log/startup.log) 2>&1
+
+if [ -z "${STARTUP_LOGGING:-}" ]; then
+	exec > >(tee -a /var/log/startup.log) 2>&1
+fi
 
 APP_DIR="/opt/ha-rag"
 
@@ -29,14 +32,14 @@ install_docker() {
 
 	log "Installing Docker"
 	. /etc/os-release # returns the os id (debian, ubutunu, etc) and VERSION_CODENAME to the shell
-	apt-get update -y
-	apt-get install -y ca-certificates curl gnupg git
+	apt-get -o DPkg::Lock::Timeout=120 update -y
+	apt-get -o DPkg::Lock::Timeout=120 install -y ca-certificates curl gnupg git
 	install -m 0755 -d /etc/apt/keyrings
 	curl -fsSL "https://download.docker.com/linux/${ID}/gpg" -o /etc/apt/keyrings/docker.asc
 	chmod a+r /etc/apt/keyrings/docker.asc
 	echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
-	apt-get update -y
-	apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+	apt-get -o DPkg::Lock::Timeout=120 update -y
+	apt-get -o DPkg::Lock::Timeout=120 install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 	systemctl enable --now docker
 }
 
@@ -56,7 +59,7 @@ sync_repo() {
 # sets up the 
 # (used google gemini to assist with this part since it was confusing -ymani)
 setup_lvm() {
-	apt-get install -y lvm2
+	apt-get -o DPkg::Lock::Timeout=120 install -y lvm2
 	DISK=/dev/disk/by-id/google-data-disk
 
 	# create physical volume and volume group (only if missing)
@@ -80,50 +83,55 @@ setup_lvm() {
 }
 
 write_env() {
-  ENV_FILE="${APP_DIR}/docker/.env"
-  PW="$(gcloud secrets versions access latest --secret=postgres-password)"
-  ( umask 077; printf 'POSTGRES_PASSWORD=%s\n' "$PW" > "$ENV_FILE" )
+	ENV_FILE="${APP_DIR}/docker/.env"
+	PW="$(gcloud secrets versions access latest --secret=postgres-password)"
+	( umask 077; printf 'POSTGRES_PASSWORD=%s\n' "$PW" > "$ENV_FILE" )
 
-  log "Wrote .env"
+	log "Wrote .env"
 }
 
 # LOADING THE MODELS
 # ==================================================================================
 # stages the models into the /models volume so that they are available for use
 stage_models() {
-  local OLLAMA_IMAGE="ollama/ollama:0.40.17"
-  local MODELS=("llama3.2:3b" "nomic-embed-text")
+  	local OLLAMA_IMAGE="ollama/ollama:0.40.17"
+  	local MODELS=("llama3.2:3b" "nomic-embed-text")
 
-  docker rm -f ollama-stage >/dev/null 2>&1 || true
-  docker run -d --name ollama-stage -e OLLAMA_MODELS=/models -v /models:/models "$OLLAMA_IMAGE"
+  	docker rm -f ollama-stage >/dev/null 2>&1 || true
+  	docker run -d --name ollama-stage -e OLLAMA_MODELS=/models -v /models:/models "$OLLAMA_IMAGE"
 
-  sleep 5
+  	for _ in $(seq 1 30); do
+		docker exec ollama-stage ollama list >/dev/null 2>&1 && break
+		sleep 2
+	done
 
-  for m in "${MODELS[@]}"; do
-    if docker exec ollama-stage ollama list | grep -q "^${m}"; then
-      log "Model ${m} already staged"
-    else
-      log "Pulling ${m}"
-      docker exec ollama-stage ollama pull "$m"
-    fi
-  done
+	for m in "${MODELS[@]}"; do
+    	if docker exec ollama-stage ollama list | grep -q "^${m}"; then
+      		log "Model ${m} already staged"
+    	else
+      		log "Pulling ${m}"
+      		docker exec ollama-stage ollama pull "$m"
+		fi
+	done
 
-  docker rm -f ollama-stage
+	docker rm -f ollama-stage
 }
 
 start_stack() {
-  cd "${APP_DIR}/docker"
-  docker compose up -d --build
+  	cd "${APP_DIR}/docker"
+  	docker compose up -d --build
 
-  log "Waiting for database"
-  until [ "$(docker inspect -f '{{.State.Health.Status}}' rag-db 2>/dev/null)" = "healthy" ]; do
-    sleep 5
-  done
+  	log "Waiting for database"
+  	for _ in $(seq 1 60); do
+		[ "$(docker inspect -f '{{.State.Health.Status}}' rag-db 2>/dev/null)" = "healthy" ] && return
+		sleep 5
+	done
+	log "ERROR: database did not become healthy"; exit 1
 }
 
 run_ingest() {
-  cd "${APP_DIR}/docker"
-  docker compose --profile tools run --rm --build ingest
+	cd "${APP_DIR}/docker"
+	docker compose --profile tools run --rm --build ingest
 }
 
 # ==================================================================================
